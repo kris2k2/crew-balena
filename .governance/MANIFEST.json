@@ -1,0 +1,158 @@
+{
+  "commit": "e87d271641b05027a7e1f426f81a5c62fafe178b",
+  "files": [
+    {
+      "path": "AGENTS.md",
+      "sha256": "06b7dbeb98bcfd524d2173378489ee17a014549edf8372f566e1f6c8dab5bec4"
+    },
+    {
+      "path": "CHANGELOG.md",
+      "sha256": "176cc19edb9fd763eff7da26c9c11acf09fe49807ee8bd9ea351f3f2b68a62dd"
+    },
+    {
+      "path": "VERSION",
+      "sha256": "e9dd8507f4bf0c6f42458e41aea833ad0bd3f6127272335eee9bf4d58541ed67"
+    },
+    {
+      "path": "standards/cloud/aws.md",
+      "sha256": "70cd94a412cbb78e3f98e67cb2ea092b3265f91fea8b87312df4afcace0706e6"
+    },
+    {
+      "path": "standards/efficiency/aws-cost.md",
+      "sha256": "ee8321475c999bec4ecfb8c7cd0684ffdaba6854e4e3bced44b192d6c71ed377"
+    },
+    {
+      "path": "standards/efficiency/ci-github-actions.md",
+      "sha256": "f6b9ee970ec9a1be591c464a501f4b1a45801b5a749228a54661825a6bd78f7a"
+    },
+    {
+      "path": "standards/efficiency/claude-code.md",
+      "sha256": "9b4ac123746d2718c55dae643323eb6f5b9030b1d75e7862b91444e5f2dca1ca"
+    },
+    {
+      "path": "standards/privacy/pii.md",
+      "sha256": "f063a11579ce8c282267b250a400caea79cfd56c7a2374cbb00934c03a384797"
+    },
+    {
+      "path": "standards/sdlc/governance-adoption.md",
+      "sha256": "e7e880db721c3a15cf5a91b9e015cc0e57021ce7bcda05105063d4ed801dbb14"
+    },
+    {
+      "path": "standards/sdlc/runtime-versions.md",
+      "sha256": "82d5f1157887aa3be5bc9d60d591e1b1080a162a0461307353d980a1b4514e32"
+    },
+    {
+      "path": "standards/sdlc/versioning.md",
+      "sha256": "fa24455280ef3437355dad3fb0050cf35196909ce923074013e88e51dd361c36"
+    },
+    {
+      "path": "standards/sdlc/workflow.md",
+      "sha256": "ddf706508b8e7009e622533e2860fe07abcf7091ddd3b1a97b3c52a741f5136b"
+    },
+    {
+      "path": "standards/security/aws-ci-bootstrap.md",
+      "sha256": "a156022421f08898b00c357536bba33cb6b98ec7ffb00eda46be01332208ea62"
+    },
+    {
+      "path": "standards/security/owasp-agentic-llm.md",
+      "sha256": "146854353c4b130551f5d79a2989710b374a83803769925c2092ab7ca2ebaf19"
+    },
+    {
+      "path": "standards/security/owasp-top-10.md",
+      "sha256": "42a197d3cd3236c11dcaa868ee7f6e118234569e61181a58c3a3a67108ebd47c"
+    },
+    {
+      "path": "standards/security/secrets.md",
+      "sha256": "38cc6c1207415c2d018c3708096f59b1a2600434018c26637d40d70e31d33e84"
+    },
+    {
+      "path": "standards/security/supply-chain.md",
+      "sha256": "a2d99c5ca4b9a2a7e8afa42cd5fbefacffa1a371ab6309609aaba2da7c691f5e"
+    },
+    {
+      "path": "templates/adr.md",
+      "sha256": "bfcf23f3db6395e6e057ad69550e3ba8380aa51ca122601ca9823961dc162643"
+    },
+    {
+      "path": "templates/aws/cdk/project-guardrails.ts",
+      "sha256": "0ccdbddb243be9ca43da598c9ea967440fd6ee078cd15f6b66a0c6f9ed585f7b"
+    },
+    {
+      "path": "templates/aws/github-ci-bootstrap.yaml",
+      "sha256": "e48819aa811dd710546241cae8433587ec892631bc10157ac716e8c69cac2628"
+    },
+    {
+      "path": "templates/project/AGENTS.md",
+      "sha256": "99a0e11d55b4c2a5eead53bee26ee3ec7db3e4742338ed9bc7533fc4f0d18787"
+    },
+    {
+      "path": "templates/project/CLAUDE.md",
+      "sha256": "e60e9c96e5643c5ca8ec05ac11af12ea1b42a1aaf245049bea2286029b9c605a"
+    },
+    {
+      "path": "templates/project/CODEOWNERS",
+      "sha256": "43da2ce9ae94484e5e302712d5564acc221c57b4f3591e196648a89efda6b5b5"
+    },
+    {
+      "path": "templates/project/claude-settings.json",
+      "sha256": "006cca41f5cdb506ad1844903665ea0dce7aeb96a6a0f39998a931f237eda2d8"
+    },
+    {
+      "path": "templates/project/dependabot.yml",
+      "sha256": "1f8ddf12f85c705b19cb22fdcadd94cc694f93328e3fbf8f5461db25553f6166"
+    },
+    {
+      "path": "templates/project/gitignore",
+      "sha256": "2a736b899f863ed923eaf7ce7554854e7740dede5aff49c30ebf441315a90d00"
+    },
+    {
+      "path": "templates/project/governance-sync.yml",
+      "sha256": "3ce691a46ca5612b8c2856fe59cb7518a5b11d67d81cf0553855415c9772700f"
+    },
+    {
+      "path": "templates/project/governance.yml",
+      "sha256": "addaccf25746c4f060836aec3a48ff0a6bd595ddd52b27aa48271bd0bd1807cd"
+    },
+    {
+      "path": "templates/project/pre-commit-config.yaml",
+      "sha256": "cdc61ae625b32fcfd58e1dc1ef05d810d2a31459281c2d515e35cf8b906aa401"
+    },
+    {
+      "path": "templates/project/pull_request_template.md",
+      "sha256": "7d2a5977c2a138b4c1e5f791d314340885131a87c0d41be0d1034df1cbf9f8d9"
+    },
+    {
+      "path": "templates/threat-model.md",
+      "sha256": "21076c5f34c030a531d7a8d0555ffb45badcb03bdc4071e260ef42b97eb93e41"
+    },
+    {
+      "path": "tools/check_commit_msg.py",
+      "sha256": "cc24a344f6ec2a3d03e00dc72202e800023fa642c2e5048e48ac939407dff4bf"
+    },
+    {
+      "path": "tools/check_runtimes.py",
+      "sha256": "dd15e8d872cc6af610a18b055f68f21ee45439f980d188168824c02174630c28"
+    },
+    {
+      "path": "tools/governance.py",
+      "sha256": "8eef858ae507a903ff61ffd8048dcdc62bc52ab605d674e11571800bb4639322"
+    },
+    {
+      "path": "tools/pii_scan.py",
+      "sha256": "b677ee91e2ae0c1eb6e41a1f50e21f4627eea3838fd8d5acea908f90323731e2"
+    },
+    {
+      "path": "tools/release.py",
+      "sha256": "3db6a8947ca9bd7fa5fd6d9c944fced812d066ceb199eb095b4303ddb8d6c0b6"
+    },
+    {
+      "path": "tools/requirements.txt",
+      "sha256": "089728ae9fcc1b2a080838ac75bc18f76fdbef24aa3adad47f4b06ff0dc17b54"
+    }
+  ],
+  "owner": "kris2k2",
+  "project": "crew-balena",
+  "schema": 1,
+  "source": "local",
+  "version": "0.1.0+dev.e87d271"
+}
