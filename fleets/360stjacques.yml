@@ -20,12 +20,11 @@ slug: syneo/crew
 # crew-printcapture pushed to this fleet.
 version: 2.0.0
 
-# false: CI renders and checks this fleet, and nothing is pushed to
-# balenaCloud. crew-printcapture still pushes its own releases to this fleet
-# until the cutover, and two writers to one fleet is the state to avoid, so
-# this flips to true in the same change that stops crew-printcapture's fleet
-# push (docs/migration-crew-printcapture.md, step 3).
-deploy: false
+# true: merging a change that alters this fleet's render pushes it. Switched
+# on at the cutover (docs/migration-crew-printcapture.md, step 3), once
+# crew-printcapture stopped pushing fleet releases of its own: this
+# repository is now the only writer to this fleet.
+deploy: true
 
 # Service (a directory under services/) and the released version to run.
 services:
