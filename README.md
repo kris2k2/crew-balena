@@ -26,7 +26,7 @@ Why it is split this way: [ADR-0001](docs/adr/0001-composable-fleet-deployment.m
 
 | Fleet | balenaCloud | Services | Deploying |
 | --- | --- | --- | --- |
-| [`360stjacques`](fleets/360stjacques.yml) | `syneo/crew` (to be renamed `syneo/360stjacques`) | crew-printcapture | yes |
+| [`360stjacques`](fleets/360stjacques.yml) | `syneo/crew` (to be renamed `syneo/360stjacques`) | crew-printcapture, syslog-collector | yes |
 
 ## Releasing
 

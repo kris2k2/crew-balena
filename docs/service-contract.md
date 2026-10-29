@@ -49,6 +49,7 @@ straight onto the device. Ports and LAN alias IPs in use:
 | Service | Ports | LAN alias IPs |
 |---|---|---|
 | crew-printcapture | 9100 (print), 8080 (web UI) | from `PRINTCAPTURE_DOC_TYPES` |
+| syslog-collector | 5140/udp (published from the default bridge network, not host networking) | none |
 
 A new service adds its row here in the pull request that first vendors it.
 
