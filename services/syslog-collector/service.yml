@@ -1,0 +1,9 @@
+# The aws-siem-unifi syslog / CEF collector for UniFi gateways: receives syslog on UDP 5140 and posts batches to
+# the project's own AWS ingest endpoint. See services/crew-printcapture/service.yml for what this file is.
+#
+# Its release process (aws-siem-unifi's Balena block release workflow) publishes one build per version and tags it
+# v<version>, refusing a version already tagged, so the version pinned here names exactly one image.
+
+repository: kris2k2/aws-siem-unifi
+fragment: packaging/balena/fleet/docker-compose.yml
+block: syneo/syslog-collector-aarch64

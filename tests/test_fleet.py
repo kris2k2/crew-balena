@@ -106,7 +106,7 @@ class TheRealFleet(unittest.TestCase):
     def test_check_is_clean(self):
         self.assertEqual(fleet.check(REPO), [])
 
-    def test_360stjacques_matches_what_crew_printcapture_pushes(self):
+    def test_360stjacques_runs_printcapture_as_crew_printcapture_pushes_it(self):
         # crew-printcapture's deploy.sh pushed its fragment with the two
         # placeholders sed-substituted and nothing else. Rendering through
         # this repository must give devices the same composition, or the
@@ -119,7 +119,12 @@ class TheRealFleet(unittest.TestCase):
             fragment.replace("BALENA_BLOCK_SLUG", block).replace("BALENA_BLOCK_VERSION", version)
         )
         rendered = yaml.safe_load(fleet.render(REPO, manifest)["docker-compose.yml"])
-        self.assertEqual(rendered, as_printcapture_pushes)
+        # Other services joining the fleet must leave printcapture's own service and volume exactly as
+        # crew-printcapture pushed them: a changed service config is a restart, mid-service.
+        self.assertEqual(rendered["version"], as_printcapture_pushes["version"])
+        for kind in ("services", "volumes"):
+            for name, value in as_printcapture_pushes[kind].items():
+                self.assertEqual(rendered[kind][name], value, f"{kind[:-1]} {name}")
 
     def test_360stjacques_keeps_the_names_balena_keys_state_to(self):
         # Service variables are scoped to the service name, and the volume

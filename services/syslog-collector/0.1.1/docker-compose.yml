@@ -1,0 +1,31 @@
+# The collector's part of a balena fleet composition: everything the block cannot carry (the port, the spool volume,
+# the hardening, the stop grace period), which is the consuming fleet's to declare. A fleet repository copies this
+# file from a release tag and substitutes the image reference, then merges it with the other services that share the
+# fleet's devices (crew-balena does, with the same two placeholders crew-printcapture's fragment uses).
+#
+# Service and volume names are prefixed with the collector's name because they share one namespace with every other
+# service in the fleet, and balena keys state to them: the dashboard's service variables (the ingest token among
+# them) to the service name, and the spool to the volume name. Never rename either once a device has run it.
+version: '2.1'
+
+volumes:
+  # Survives releases and reboots: batches waiting out an AWS outage are kept.
+  syslog-collector-spool: {}
+
+services:
+  syslog-collector:
+    # bh.cr/<org>/<block>/<version>, substituted by whoever deploys this; the placeholders keep any organization or
+    # block name out of the repository, so every fork publishes and deploys its own.
+    image: bh.cr/BALENA_BLOCK_SLUG/BALENA_BLOCK_VERSION
+    ports:
+      - "5140:5140/udp"   # change the left side to move the port; the collector listens on 5140 inside
+    volumes:
+      - syslog-collector-spool:/var/lib/syslog-collector
+    read_only: true
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges]
+    mem_limit: 256m
+    # SIGTERM flushes or spools the pending batch, which can take the HTTP timeout; Docker's 10 s default would
+    # SIGKILL a slow flush.
+    stop_grace_period: 40s
+    restart: always

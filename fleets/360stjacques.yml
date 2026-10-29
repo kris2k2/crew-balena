@@ -18,7 +18,7 @@ slug: syneo/crew
 # alters the rendered composition; CI refuses a change that doesn't. Starts at
 # 2.0.0 so the first crew-balena release sorts above the 1.x releases that
 # crew-printcapture pushed to this fleet.
-version: 2.0.0
+version: 2.1.0
 
 # true: merging a change that alters this fleet's render pushes it. Switched
 # on at the cutover (docs/migration-crew-printcapture.md, step 3), once
@@ -29,3 +29,4 @@ deploy: true
 # Service (a directory under services/) and the released version to run.
 services:
   crew-printcapture: 1.15.0
+  syslog-collector: 0.1.1
