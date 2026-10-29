@@ -1,0 +1,32 @@
+# 360 St-Jacques: the site's one balenaCloud fleet, and every service its
+# devices run. One fleet per site; every device in a fleet runs every service
+# listed here.
+#
+# Merging a change to this file (or to a service version it pins) deploys it,
+# once `deploy` is true: .github/workflows/deploy.yml renders the fleet's
+# composition and pushes it as a new fleet release.
+
+# Shown as the fleet release's name in balenaCloud.
+name: 360StJacques
+
+# The balenaCloud fleet, `<organization>/<fleet>`. Still the fleet's original
+# name: it is renamed to syneo/360stjacques only after crew-balena is the
+# only thing that pushes to it (docs/migration-crew-printcapture.md, step 4).
+slug: syneo/crew
+
+# The fleet release version. Raise it in the same change as anything that
+# alters the rendered composition; CI refuses a change that doesn't. Starts at
+# 2.0.0 so the first crew-balena release sorts above the 1.x releases that
+# crew-printcapture pushed to this fleet.
+version: 2.0.0
+
+# false: CI renders and checks this fleet, and nothing is pushed to
+# balenaCloud. crew-printcapture still pushes its own releases to this fleet
+# until the cutover, and two writers to one fleet is the state to avoid, so
+# this flips to true in the same change that stops crew-printcapture's fleet
+# push (docs/migration-crew-printcapture.md, step 3).
+deploy: false
+
+# Service (a directory under services/) and the released version to run.
+services:
+  crew-printcapture: 1.15.0
