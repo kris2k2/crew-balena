@@ -42,8 +42,9 @@ done
 
 SOURCE="$RENDER_DIR/source"
 META="$RENDER_DIR/meta.json"
-[ -f "$SOURCE/docker-compose.yml" ] && [ -f "$SOURCE/balena.yml" ] && [ -f "$META" ] ||
+if [ ! -f "$SOURCE/docker-compose.yml" ] || [ ! -f "$SOURCE/balena.yml" ] || [ ! -f "$META" ]; then
   die "$RENDER_DIR is not a tools/fleet.py render (source/ and meta.json)"
+fi
 
 # meta.json is read with python rather than parsed in shell: it is JSON this
 # repository wrote, and jq is not guaranteed on every machine this runs on.
