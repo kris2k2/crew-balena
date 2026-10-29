@@ -1,0 +1,75 @@
+# Checks every pull request runs before it can merge, and therefore before it
+# can deploy: merging a change under fleets/ or services/ releases it to
+# devices (.github/workflows/deploy.yml), and bump pull requests auto-merge
+# on this check alone. Make `fleets` a required status check on main.
+#
+# Not path-filtered on purpose: a required check that a path filter skips
+# stays pending, and an auto-merge waiting on it never happens.
+name: ci
+
+on:
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  fleets:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+        with:
+          fetch-depth: 0  # the base commit, to compare renders against
+          persist-credentials: false
+
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97  # v7.0.0
+        with:
+          python-version: "3.x"
+          cache: pip
+          cache-dependency-path: tools/requirements.txt
+
+      - name: Install PyYAML (hash-pinned)
+        run: python -m pip install --disable-pip-version-check --require-hashes -r tools/requirements.txt
+
+      # Cheapest first. shellcheck is preinstalled on ubuntu runners.
+      - name: shellcheck
+        run: shellcheck tools/*.sh
+
+      - name: Unit tests
+        run: python -m unittest discover -s tests
+
+      - name: Check fleets against the base branch
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+        run: |
+          git worktree add --detach "$RUNNER_TEMP/base" "$BASE_SHA"
+          python tools/fleet.py check --base-root "$RUNNER_TEMP/base"
+
+      # What merging this would change on devices, for the reviewer (or the
+      # record, on an auto-merged bump): the rendered diff, and the fleets the
+      # deploy workflow would push.
+      - name: What this deploys
+        run: |
+          python tools/fleet.py --root "$RUNNER_TEMP/base" render --out "$RUNNER_TEMP/render-base" >/dev/null 2>&1 || true
+          python tools/fleet.py render --out "$RUNNER_TEMP/render-head" >/dev/null
+          pushes=$(python tools/fleet.py changed --base-root "$RUNNER_TEMP/base")
+          {
+            echo "### Fleets this merge pushes"
+            echo
+            if [ -n "$pushes" ]; then
+              printf -- '- `%s`\n' $pushes
+            else
+              echo "None."
+            fi
+            echo
+            echo "### Rendered composition diff"
+            echo
+            echo '```diff'
+            diff -ruN "$RUNNER_TEMP/render-base" "$RUNNER_TEMP/render-head" || true
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"

@@ -1,0 +1,126 @@
+# Release fleets to balenaCloud from main.
+#
+# A merge that changes what a fleet renders to (a service version, a fleet
+# version, a newly vendored fragment) pushes that fleet as a new release, if
+# its manifest says `deploy: true`. Fleets with `deploy: false` are never
+# pushed, by a merge or by hand: tools/deploy.sh refuses them.
+#
+# The images are not built here. Each service is a block its own project
+# publishes on release; this only resolves the composition into a fleet
+# release, on balena's builders, which takes a few minutes.
+#
+# SECRETS
+#
+# BALENA_API_TOKEN lives in the `balena` environment, not as a repository
+# secret, with the environment limited to the main branch. A repository secret
+# is readable by any pull_request run from a branch of this repository, and
+# that run executes the branch's own copy of the workflow files; an
+# environment secret restricted to main is not.
+name: deploy
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - fleets/**
+      - services/**
+      - tools/fleet.py
+      - tools/deploy.sh
+  workflow_dispatch:
+    inputs:
+      fleet:
+        description: "Fleet id to push (a file name under fleets/, without .yml). Its manifest must say deploy: true."
+        required: true
+        type: string
+      draft:
+        description: "Create the release as a draft: devices ignore it until it is finalized in the dashboard."
+        required: false
+        default: false
+        type: boolean
+
+permissions:
+  contents: read
+
+concurrency:
+  # One deploy at a time, never cancelled: a cancelled push can leave a fleet
+  # between releases, and two merges close together must both land. Each run
+  # renders from its own commit, so the later run carries both changes.
+  group: deploy
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    # Mostly waiting on balena's builders.
+    timeout-minutes: 60
+    environment: balena
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+        with:
+          fetch-depth: 0  # the previous main commit, to see what changed
+          persist-credentials: false
+
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97  # v7.0.0
+        with:
+          python-version: "3.x"
+          cache: pip
+          cache-dependency-path: tools/requirements.txt
+
+      - name: Install PyYAML (hash-pinned)
+        run: python -m pip install --disable-pip-version-check --require-hashes -r tools/requirements.txt
+
+      - name: Which fleets to push
+        id: plan
+        env:
+          EVENT: ${{ github.event_name }}
+          BEFORE: ${{ github.event.before }}
+          FLEET: ${{ inputs.fleet }}
+        run: |
+          if [ "$EVENT" = workflow_dispatch ]; then
+            ids=$FLEET
+          else
+            base="$RUNNER_TEMP/base"
+            if git cat-file -e "${BEFORE}^{commit}" 2>/dev/null; then
+              git worktree add --detach "$base" "$BEFORE"
+            else
+              # No previous commit to compare with: every fleet with deploy
+              # on counts as new.
+              mkdir -p "$base/fleets"
+            fi
+            ids=$(python tools/fleet.py changed --base-root "$base" | tr '\n' ' ')
+          fi
+          python tools/fleet.py render $ids --out "$RUNNER_TEMP/render" >/dev/null
+          echo "ids=$ids" >> "$GITHUB_OUTPUT"
+          if [ -z "${ids// /}" ]; then
+            echo "No fleet with \`deploy: true\` changed; nothing pushed." >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+      # balena-cli 25 requires node >=24.11 <25.
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1  # v7.1.0
+        if: steps.plan.outputs.ids != ''
+        with:
+          node-version: "24"
+
+      - name: Install the balena CLI
+        if: steps.plan.outputs.ids != ''
+        run: npm install --global balena-cli@25.2.7
+
+      - name: Push
+        if: steps.plan.outputs.ids != ''
+        env:
+          BALENA_API_TOKEN: ${{ secrets.BALENA_API_TOKEN }}
+          IDS: ${{ steps.plan.outputs.ids }}
+          DRAFT: ${{ inputs.draft }}
+        run: |
+          args=()
+          [ "$DRAFT" != true ] || args+=(--draft)
+          failed=()
+          for id in $IDS; do
+            if tools/deploy.sh "$RUNNER_TEMP/render/$id" "${args[@]}"; then
+              echo "- \`$id\`: released" >> "$GITHUB_STEP_SUMMARY"
+            else
+              echo "- \`$id\`: **FAILED**" >> "$GITHUB_STEP_SUMMARY"
+              failed+=("$id")
+            fi
+          done
+          [ ${#failed[@]} -eq 0 ] || { echo "fleets that did not take the release: ${failed[*]}" >&2; exit 1; }

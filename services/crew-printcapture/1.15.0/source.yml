@@ -1,0 +1,8 @@
+# Where docker-compose.yml in this directory came from. Written by whoever
+# vendors a release (by hand for now, by the bump workflow later) and checked
+# by `tools/fleet.py check`: the file must still hash to sha256 below, so a
+# hand edit to a vendored fragment fails CI. Change the fragment in the
+# project and release it; never edit it here.
+tag: v1.15.0
+commit: 31319e9b1ada3bd92c5b6a6734fdcd8ca01e5fa6
+sha256: 644c4eae2b169526655aba26bfcd2fdc008240d99b63badc84ffb812478cb7eb

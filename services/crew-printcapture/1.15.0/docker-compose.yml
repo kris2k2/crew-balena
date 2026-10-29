@@ -1,0 +1,117 @@
+# The composition every Crew.PrintCapture fleet runs.
+#
+# This file used to live at the repository root and carry `build:`, so that
+# `balena push <fleet>` built the image once per fleet. It does not any more:
+# the image is built once, as a block (see balena.yml), and every fleet's
+# release references that one build by version. What is left here is
+# everything a block cannot carry -- host networking, the one extra
+# capability, the volume, the stop grace period and the variables the
+# dashboard shows -- because all of it is compose-level and therefore the
+# consumer's to declare.
+#
+# deploy/balena/deploy.sh renders this file (substituting the image reference
+# below) and pushes it to each fleet in deploy/balena/deploy.conf. It is not
+# pushed from here as it stands: the placeholder is not a real image.
+version: '2.1'
+
+volumes:
+  # Captures, the outbound spool and the operator-edited config.yaml. Balena
+  # keeps a named volume across releases and reboots, and deletes it only when
+  # the device is purged -- so a release that lands mid-service does not lose
+  # the jobs that have not been delivered yet.
+  printcapture-data: {}
+
+services:
+  printcapture:
+    # Rewritten by deploy/balena/deploy.sh, which replaces this exact string
+    # with the configured block slug and the version being released --
+    # `bh.cr/acme/crew-printcapture/1.5.0`, say.
+    #
+    # bh.cr is balenaHub's registry proxy, and the path is
+    # `<org>/<block>/<version>`: a forward slash before the version, not a
+    # colon, because a Docker client does not send the tag when it asks for an
+    # authorization token and the proxy needs the release named before it can
+    # decide what the caller may pull. Naming the version rather than letting
+    # it default to the block's latest release is what makes a fleet release
+    # reproducible: the dashboard, the git tag and the running container all
+    # say 1.5.0.
+    #
+    # The block is private (this repository is), so the *builder* needs
+    # credentials to pull it while it resolves this composition into a
+    # release. deploy/balena/deploy.sh passes them with --registry-secrets;
+    # devices are unaffected, they pull the finished fleet release from
+    # balena's own registry as always.
+    image: bh.cr/BALENA_BLOCK_SLUG/BALENA_BLOCK_VERSION
+
+    # NOT a convenience, and not swappable for `ports:`.
+    #
+    # The POS is configured with one printer IP per document type, and
+    # `doc_types` resolves a job's type from getsockname() -- the local
+    # address the POS dialled (config.py:350, server.py:160). Behind Docker's
+    # bridge and its DNAT, getsockname() returns the container's private
+    # address, identical for every one of those IPs: doc_types would never
+    # match, every job would silently land as `default_doc_type`, and nothing
+    # would look broken until someone read a day's report. Host networking is
+    # what keeps the destination address the one the POS actually dialled.
+    #
+    # It also means the listener is on the device's LAN address with no port
+    # mapping in the way, which is what a POS expects of a network printer,
+    # and it is what lets the aliasing below add real addresses to the real
+    # NIC rather than to a container-private bridge nothing else can reach.
+    network_mode: host
+
+    # NET_ADMIN, and nothing else. `doc_types`' IPs have to actually exist on
+    # the LAN NIC before the POS can dial them -- README.md's "Multiple
+    # printer IPs, one listener" has always assumed an operator already set
+    # that up by hand on the host. A balena device has no operator logged
+    # into the host to do that, so deploy/balena/configure-lan-aliases.sh
+    # does it from PRINTCAPTURE_DOC_TYPES on every start, and adding an
+    # address to an interface needs this capability. It is also why
+    # watch-lan-aliases.sh can put them back after a DHCP client flushes the
+    # interface, which is the other half of the same job. Everything else
+    # stays dropped -- this is not `privileged: true`.
+    cap_drop:
+      - ALL
+    cap_add:
+      - NET_ADMIN
+
+    volumes:
+      - printcapture-data:/var/lib/printcapture
+
+    restart: always
+
+    # The supervisor stops the container with SIGTERM. sender.drain_seconds
+    # (15s by default) is how long the outbound leg keeps trying to deliver
+    # what is already queued, so give it room to finish rather than having the
+    # runtime SIGKILL it at the default 10s and strand those jobs in the spool.
+    stop_grace_period: 30s
+
+    # Every one of these is optional and settable per-device or fleet-wide in
+    # the balenaCloud dashboard. Defined here so they show up as the release's
+    # declared configuration; the entrypoint treats an empty value as unset,
+    # so the shipped config.yaml (or, for the LAN variables, auto-detection)
+    # stays in charge of anything left blank. A device/fleet variable of the
+    # same name set in the dashboard overrides the blank default below.
+    #
+    # This is also the seam that makes one block serve every site: the image
+    # is identical everywhere, and a site differs only by what its fleet (or
+    # one of its devices) sets here in the dashboard.
+    #
+    # CREW_INGEST_API_KEY is deliberately NOT listed: it is a secret, and it
+    # belongs in a dashboard service variable, not in a file in git. The same
+    # goes for the per-endpoint keys CREW_INGEST_ENDPOINTS asks for --
+    # CREW_INGEST_API_KEY_<NAME>, one per named endpoint, which cannot be
+    # declared here anyway because the names are the operator's.
+    environment:
+      PRINTCAPTURE_CAPTURE_MODE: ''      # off | index | jobs | full
+      PRINTCAPTURE_LOG_LEVEL: ''         # DEBUG | INFO | WARNING | ERROR
+      PRINTCAPTURE_SENDER: ''            # true turns the outbound REST leg on
+      PRINTCAPTURE_WEB: ''               # blank = the seeded config, which serves the read-only UI on 8080; false forces it off
+      PRINTCAPTURE_CONFIG_REFRESH: ''    # true = replace the device's config.yaml with this release's default on every start; blank/false keeps it
+      PRINTCAPTURE_DOC_TYPES: ''         # "10.20.30.7=chit,10.20.30.8=check" -- also the LAN alias IP plan, see below
+      PRINTCAPTURE_LAN_IFACE: ''         # blank = auto-detected from the default route (normally right)
+      PRINTCAPTURE_ALIAS_PREFIX: ''      # blank = same /prefix as the NIC's existing address (normally right)
+      PRINTCAPTURE_ALIAS_WATCH_INTERVAL: ''  # blank = 30s; how often the alias watchdog re-checks, 0 turns it off
+      CREW_INGEST_ENDPOINT: ''           # blank = the dev endpoint in config.yaml
+      CREW_INGEST_ENDPOINTS: ''          # "prod=https://one/api/ingest/print,dev=https://two/..." -- several dashboards, PRIMARY FIRST; blank = the single endpoint above
+      CREW_AGENT_ID: ''                  # blank = this device's UUID

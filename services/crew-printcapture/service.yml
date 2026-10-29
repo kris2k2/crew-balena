@@ -1,0 +1,20 @@
+# A service that fleets in this repository can run: one project's balena block.
+#
+# The project builds and publishes the block on its own release (its
+# balena.yml is `type: sw.block`); this repository only decides which fleets
+# run which version of it. The image reference a fleet gets is
+# `bh.cr/<block>/<version>`, with the version taken from the fleet manifest.
+#
+# Each released version this repository can deploy has a directory next to
+# this file, holding the project's fleet compose fragment copied verbatim from
+# that release's tag, plus a source.yml saying exactly where it came from. See
+# docs/service-contract.md.
+
+# The project's repository, where the block and its compose fragment live.
+repository: kris2k2/crew-printcapture
+
+# Path of the compose fragment inside that repository, at each release tag.
+fragment: deploy/balena/fleet/docker-compose.yml
+
+# The balena block (`<organization>/<block>`) the project publishes to.
+block: syneo/crew-printcapture-aarch64
