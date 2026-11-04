@@ -1,0 +1,74 @@
+# crew-sitetunnel's part of a balena fleet composition: everything the block
+# cannot carry (the hardening, the tmpfs for credentials, the stop grace
+# period, the variables the dashboard shows), which is the consuming fleet's
+# to declare. kris2k2/crew-balena copies this file byte for byte from a
+# release tag, substitutes the image reference, and merges it with the other
+# services that share the site's devices. It is not pushed from here as it
+# stands: the placeholder below is not a real image.
+#
+# Service names are prefixed with the project's name because they share one
+# namespace with every other service in the fleet, and balena keys the
+# dashboard's service variables (the private key among them) to the service
+# name. Never rename it once a device has run it.
+#
+# There is no volume: the agent keeps no state. Its credentials arrive as
+# service variables and live in a tmpfs, so the private key never reaches the
+# SD card (docs/BALENA.md).
+version: '2.1'
+
+services:
+  sitetunnel:
+    # bh.cr/<org>/<block>/<version>, substituted by whoever deploys this; the
+    # placeholders keep any organization or block name out of the repository,
+    # so every fork publishes and deploys its own.
+    image: bh.cr/BALENA_BLOCK_SLUG/BALENA_BLOCK_VERSION
+
+    # Default bridge network, deliberately. The agent only dials out (to the
+    # gateway, and to the allowlisted hosts on the LAN), so it needs neither
+    # host networking nor a published port: nothing listens on the device.
+
+    read_only: true
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges
+    # The only writable place: the credentials the entrypoint writes from the
+    # *_PEM variables, and the downloaded CRL. uid/gid are the image's
+    # `sitetunnel` user (deploy/balena/Dockerfile); mode 0700 keeps the key
+    # readable by that user alone. Memory only, gone on every restart.
+    tmpfs:
+      - /run/sitetunnel:mode=0700,uid=10001,gid=10001,size=4m
+
+    # Same bounds as deploy/systemd/sitetunnel-agent.service (MemoryMax=512M,
+    # TasksMax=64, the latter doubled for the entrypoint and CRL refresher).
+    mem_limit: 512m
+    pids_limit: 128
+
+    restart: always
+
+    # The agent stops taking new streams on SIGTERM and lets open ones finish
+    # for SITETUNNEL_SHUTDOWN_GRACE (10 s default); Docker's own 10 s default
+    # would SIGKILL it at exactly that point.
+    stop_grace_period: 30s
+
+    # Settable per device or fleet-wide in the dashboard; blank means the
+    # agent's default (docs/SITETUNNEL.md lists them all). Defined here so
+    # they show up as the release's declared configuration. Fleet-wide
+    # variables reach every service in the fleet, hence the SITETUNNEL_ prefix.
+    #
+    # NOT listed, because they are secrets and belong in *service* variables:
+    # SITETUNNEL_KEY_PEM (the agent's private key), and SITETUNNEL_EGRESS_PROXY
+    # when the proxy URL carries a password.
+    environment:
+      SITETUNNEL_GATEWAY: ''             # wss://gateway.example.com/v1/tunnel (required)
+      SITETUNNEL_CERT_PEM: ''            # the agent certificate, PEM or base64 of it (required)
+      SITETUNNEL_ALLOW: ''               # "console.site.lan:443,nvr.site.lan:443" (required; or SITETUNNEL_ALLOW_FILE)
+      SITETUNNEL_CA_PEM: ''              # CA that issued the gateway certificate; blank = system store
+      SITETUNNEL_CRL_URL: ''             # https:// URL of the gateway CA's CRL, downloaded and kept fresh
+      SITETUNNEL_CRL_PEM: ''             # a CRL pasted in instead (goes stale; prefer SITETUNNEL_CRL_URL)
+      SITETUNNEL_CRL_REFRESH: ''         # seconds between CRL downloads; blank = 3600
+      SITETUNNEL_GATEWAY_SHA256: ''      # SHA-256 pin(s) of the gateway certificate, comma-separated
+      SITETUNNEL_ALLOW_NETS: ''          # networks allowlisted hosts may resolve to; blank = RFC 1918 + fc00::/7
+      SITETUNNEL_LOG_FORMAT: ''          # json (the container default) | text
+      SITETUNNEL_MAX_STREAMS: ''         # blank = 64
+      SITETUNNEL_WINDOW: ''              # per-stream window, e.g. 2M; blank = 2M

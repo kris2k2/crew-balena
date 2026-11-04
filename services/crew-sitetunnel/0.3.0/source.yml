@@ -1,0 +1,4 @@
+# Where docker-compose.yml in this directory came from; see services/crew-printcapture/1.15.0/source.yml.
+tag: v0.3.0
+commit: f22e7a6b589b7c4999cb64740c7023c29012e112
+sha256: 18e4acc9190e287357bfaa62f26d7822c1abe1a4c13ed0d74f05d76b381353da
