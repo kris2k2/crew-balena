@@ -106,6 +106,18 @@ class TheRealFleet(unittest.TestCase):
     def test_check_is_clean(self):
         self.assertEqual(fleet.check(REPO), [])
 
+    def test_every_service_and_every_vendored_release_loads(self):
+        # fleet.check only reads what a fleet pins; a registered service that
+        # no fleet runs yet, or an older vendored release, is held to the same
+        # rules (a valid manifest, an unedited fragment).
+        for service_yml in sorted((REPO / "services").glob("*/service.yml")):
+            name = service_yml.parent.name
+            with self.subTest(service=name):
+                fleet.load_service(REPO, name)
+                for release in sorted(p for p in service_yml.parent.iterdir() if p.is_dir()):
+                    with self.subTest(release=release.name):
+                        fleet.load_fragment(REPO, name, release.name)
+
     def test_360stjacques_runs_printcapture_as_crew_printcapture_pushes_it(self):
         # crew-printcapture's deploy.sh pushed its fragment with the two
         # placeholders sed-substituted and nothing else. Rendering through

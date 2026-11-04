@@ -38,7 +38,7 @@ on a device. `tools/fleet.py` rejects a fleet where two projects declare the
 same name.
 
 **Environment variables** set fleet-wide in the dashboard reach every service
-in the fleet. Use a project prefix (`PRINTCAPTURE_*`, `VIDEOCAPTURE_*`). Set
+in the fleet. Use a project prefix (`PRINTCAPTURE_*`, `SITETUNNEL_*`, `VIDEOCAPTURE_*`). Set
 anything secret, and anything with a generic name, as a *service* variable.
 crew-printcapture's `CREW_*` variables predate this rule and must be
 service-scoped before a second service joins its fleet.
@@ -50,6 +50,7 @@ straight onto the device. Ports and LAN alias IPs in use:
 |---|---|---|
 | crew-printcapture | 9100 (print), 8080 (web UI) | from `PRINTCAPTURE_DOC_TYPES` |
 | syslog-collector | 5140/udp (published from the default bridge network, not host networking) | none |
+| sitetunnel (crew-sitetunnel) | none: it only dials out, on the default bridge network | none |
 
 A new service adds its row here in the pull request that first vendors it.
 

@@ -21,6 +21,7 @@ Why it is split this way: [ADR-0001](docs/adr/0001-composable-fleet-deployment.m
 | `.github/workflows/deploy.yml` | on merge to main: pushes every fleet whose render changed and whose `deploy` is on |
 | [`docs/service-contract.md`](docs/service-contract.md) | what a project must provide, and the naming rules a shared fleet needs |
 | [`docs/migration-crew-printcapture.md`](docs/migration-crew-printcapture.md) | the cutover runbook for 360 St-Jacques |
+| [`docs/adding-crew-sitetunnel.md`](docs/adding-crew-sitetunnel.md) | the steps to put the site tunnel agent in that fleet, once it has a release |
 
 ## Fleets
 
