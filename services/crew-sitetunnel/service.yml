@@ -1,0 +1,15 @@
+# The site tunnel agent: dials out to a gateway over mTLS and proxies the
+# gateway's requests to an allowlist of FQDNs on the site LAN. See
+# services/crew-printcapture/service.yml for what this file is.
+#
+# No version is vendored yet, so no fleet can pin it: that waits for the
+# project's first release tag (docs/adding-crew-sitetunnel.md).
+
+# The project's repository, where the block and its compose fragment live.
+repository: kris2k2/crew-sitetunnel
+
+# Path of the compose fragment inside that repository, at each release tag.
+fragment: deploy/balena/fleet/docker-compose.yml
+
+# The balena block (`<organization>/<block>`) the project publishes to.
+block: syneo/crew-sitetunnel-aarch64
